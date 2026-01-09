@@ -5,8 +5,8 @@ from typing import Generator
 from fastapi import UploadFile
 from langchain_core.messages import HumanMessage
 
-from app.services.agents.chef_agent.agent import stream_chef_agent
-from app.services.agents.chef_agent.schemas import ChefAgentContext
+from app.agents.chef_agent.agent import stream_chef_agent
+from app.agents.chef_agent.schemas import ChefAgentContext
 
 logger = logging.getLogger(__name__)
 

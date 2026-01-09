@@ -1,4 +1,4 @@
-from app.services.agents.chef_agent.prompt import CHEF_AGENT_PROMPT
+from app.agents.chef_agent.prompt import CHEF_AGENT_PROMPT
 from langchain.agents.middleware import dynamic_prompt, ModelRequest
 
 
