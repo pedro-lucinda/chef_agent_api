@@ -1,27 +1,36 @@
 import json
 from dotenv import load_dotenv
 from langchain.agents import create_agent
-from app.agents.chef_agent.tools.web_search_tool import web_search, web_search_image
-from app.agents.chef_agent.prompt import CHEF_AGENT_PROMPT
+from app.agents.general_agent.tools.web_search_tool import web_search, web_search_image
+from app.agents.general_agent.prompt import GENERAL_AGENT_PROMPT
+from app.agents.general_agent.tools.chef_agent import call_chef_agent
+from app.agents.general_agent.middlewares import _user_language_prompt, _trim_messages
+from app.agents.general_agent.checkpointer import checkpointer
 from langchain_core.messages import AnyMessage, AIMessage, ToolMessage
+from app.agents.general_agent.schemas import GeneralAgentContext
 from typing import List, Generator
 
 load_dotenv()
 
 
-chef_agent = create_agent(
-    tools=[web_search, web_search_image],
+general_agent = create_agent(
+    tools=[call_chef_agent],
     model="gpt-5-nano",
-    system_prompt=CHEF_AGENT_PROMPT,
+    system_prompt=GENERAL_AGENT_PROMPT,
+    checkpointer=checkpointer,
+    context_schema=GeneralAgentContext,
+    middleware=[_user_language_prompt, _trim_messages],
 )
 
   
-def stream_chef_agent(messages: List[AnyMessage], config: dict) -> Generator[str, None, None]:
-    """Stream the chef agent response with structured JSON events"""
+def stream_general_agent(messages: List[AnyMessage], config: dict, context: GeneralAgentContext) -> Generator[str, None, None]:
+    """Stream the general agent response with structured JSON events"""
     
-    for token, metadata in chef_agent.stream(
+    for token, metadata in general_agent.stream(
         {"messages": messages},
         stream_mode="messages",
+        config=config,
+        context=context
     ):
         # Stream tool calls
         if isinstance(token, AIMessage) and hasattr(token, 'tool_calls') and token.tool_calls:
@@ -64,6 +73,7 @@ def stream_chef_agent(messages: List[AnyMessage], config: dict) -> Generator[str
         if hasattr(token, 'content') and token.content and not (isinstance(token, AIMessage) and token.tool_calls):
             yield json.dumps({
                 "type": "data",
-                "data": token.content
+                "data": token.content,
+                "thread_id": config["configurable"]["thread_id"]
             }) + "\n"
 

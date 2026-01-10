@@ -14,4 +14,6 @@ class User(Base):
     surname = Column(String, nullable=True)
     img = Column(String, nullable=True)
 
+    threads = relationship("Thread", back_populates="user")
+
 

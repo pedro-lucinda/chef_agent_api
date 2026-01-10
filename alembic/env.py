@@ -3,7 +3,10 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 
+# Import all models to ensure they're registered with Base.metadata
 import app.models.user
+import app.models.thread
+import app.models.message
 from alembic import context
 from app.core.config import settings
 

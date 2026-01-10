@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
 
 
-class ChefAgentContext(BaseModel):
+class GeneralAgentContext(BaseModel):
     user_language: str = Field(default="English")

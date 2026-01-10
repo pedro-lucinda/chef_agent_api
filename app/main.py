@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.routers import (
-    user, chat
+    user, chat, thread, message
 )
 from app.core.config import settings
 from app.core.openapi import custom_openapi
@@ -45,6 +45,16 @@ def create_app() -> FastAPI:
         chat.router,
         prefix=f"{settings.api_v1_str}/chat",
         tags=["chat"],
+    )
+    app.include_router(
+        thread.router,
+        prefix=f"{settings.api_v1_str}/thread",
+        tags=["thread"],
+    )
+    app.include_router(
+        message.router,
+        prefix=f"{settings.api_v1_str}/message",
+        tags=["message"],
     )
 
     return app
