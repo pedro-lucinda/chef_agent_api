@@ -20,6 +20,4 @@ Tools:
     "reasoning": str,
   }]
   ```
-
-
 """

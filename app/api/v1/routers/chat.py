@@ -48,5 +48,5 @@ async def stream_chat(
             image_type=image_type,
             user_language=user_language
         ),
-        media_type="application/x-ndjson"
+        media_type="text/event-stream"
     )

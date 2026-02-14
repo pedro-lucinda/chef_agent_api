@@ -8,14 +8,17 @@ from app.agents.general_agent.middlewares import _user_language_prompt, _trim_me
 from app.agents.general_agent.checkpointer import checkpointer
 from langchain_core.messages import AnyMessage, AIMessage, ToolMessage
 from app.agents.general_agent.schemas import GeneralAgentContext
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel
 from typing import List, Generator
 
 load_dotenv()
 
+model = ChatOpenAI(model="gpt-5-nano", temperature=0.3 )
 
 general_agent = create_agent(
     tools=[call_chef_agent],
-    model="gpt-5-nano",
+    model=model,
     system_prompt=GENERAL_AGENT_PROMPT,
     checkpointer=checkpointer,
     context_schema=GeneralAgentContext,
@@ -45,14 +48,14 @@ def stream_general_agent(messages: List[AnyMessage], config: dict, context: Gene
                     tool_id = getattr(tool_call, 'id', 'unknown')
                     tool_args = getattr(tool_call, 'args', {})
                 
-                yield json.dumps({
+                yield "data: " + json.dumps({
                     "type": "tool_call",
                     "tool_call": {
                         "id": tool_id,
                         "name": tool_name,
                         "arguments": tool_args
                     }
-                }) + "\n"
+                }) + "\n\n"
         
         # Stream tool responses
         if isinstance(token, ToolMessage):
@@ -60,20 +63,20 @@ def stream_general_agent(messages: List[AnyMessage], config: dict, context: Gene
             tool_name = getattr(token, 'name', 'unknown')
             content = getattr(token, 'content', '')
             
-            yield json.dumps({
+            yield "data: " + json.dumps({
                 "type": "tool_result",
                 "tool_result": {
                     "tool_call_id": tool_call_id,
                     "name": tool_name,
                     "content": str(content) if content else ""
                 }
-            }) + "\n"
+            }) + "\n\n"
         
         # Stream content tokens
         if hasattr(token, 'content') and token.content and not (isinstance(token, AIMessage) and token.tool_calls):
-            yield json.dumps({
+            yield "data: " + json.dumps({
                 "type": "data",
                 "data": token.content,
                 "thread_id": config["configurable"]["thread_id"]
-            }) + "\n"
+            }) + "\n\n"
 

@@ -160,8 +160,6 @@ class ChatService:
             user_id=user_id
         )
         
-        # Create current message content (with optional image)
-        # Note: Checkpointer handles history - we only pass the new message
         current_content = self.create_message_content(message, image_base64, image_type)
         current_message = HumanMessage(content=current_content)
         
@@ -175,11 +173,14 @@ class ChatService:
         for chunk in stream_general_agent([current_message], config, context):
             yield chunk
             
-            # Extract text content from data events
+            # Extract text content from data events (SSE format: "data: {...}\n\n")
             try:
-                parsed = json.loads(chunk.strip())
-                if parsed.get("type") == "data" and parsed.get("data"):
-                    full_response_parts.append(parsed["data"])
+                line = chunk.strip()
+                if line.startswith("data: "):
+                    json_str = line[6:]  # Remove "data: " prefix
+                    parsed = json.loads(json_str)
+                    if parsed.get("type") == "data" and parsed.get("data"):
+                        full_response_parts.append(parsed["data"])
             except (json.JSONDecodeError, AttributeError):
                 pass
         
