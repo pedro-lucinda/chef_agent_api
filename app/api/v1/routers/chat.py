@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth0 import get_current_user
 from app.api.v1.dependencies.async_db_session import get_async_db
+from app.models.user import User as UserModel
+from app.schemas.chat import ChatResumeBody
 from app.services.chat_service import chat_service
 
 router = APIRouter()
@@ -47,6 +49,28 @@ async def stream_chat(
             image_base64=image_base64,
             image_type=image_type,
             user_language=user_language
+        ),
+        media_type="text/event-stream"
+    )
+
+
+@router.post("/resume")
+def resume_chat(
+    body: ChatResumeBody,
+    current_user: UserModel = Depends(get_current_user),
+) -> StreamingResponse:
+    """
+    Resume agent execution after a HITL interrupt (e.g. save recipe approval).
+    Send the same thread_id and the user's decisions (approve / reject / edit).
+    Streams the rest of the response in the same SSE format as /stream.
+    """
+    decisions = [d.model_dump() for d in body.decisions]
+    return StreamingResponse(
+        chat_service.stream_resume(
+            thread_id=body.thread_id,
+            user_id=current_user.id,
+            decisions=decisions,
+            user_language=body.user_language,
         ),
         media_type="text/event-stream"
     )

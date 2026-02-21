@@ -1,18 +1,20 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from app.schemas.recipe import IngredientItem, InstructionStep
+
 
 class Recipe(BaseModel):
-    """A single recipe with all details."""
+    """A single recipe with all details (chef agent output shape)."""
     name: str = Field(..., description="The name of the recipe")
-    ingredients: list[str] = Field(..., description="List of ingredients needed")
-    instructions: list[str] = Field(..., description="Step-by-step cooking instructions")
-    time_to_prepare: int = Field(..., description="Time to prepare in minutes")
+    ingredients: list[IngredientItem] = Field(..., description="List of ingredients with name and quantity")
+    instructions: list[InstructionStep] = Field(..., description="Step-by-step instructions with step number, description, time and optional chef tip")
+    time_to_prepare: int = Field(0, description="Time to prepare in minutes (default 0 if omitted)")
     image_url: Optional[str] = Field(None, description="URL of the recipe image")
 
 
 class RecipeResponse(BaseModel):
     """Structured response containing recipes."""
     recipes: list[Recipe] = Field(..., description="List of recipes")
-    source: str = Field(..., description="Source of the recipes")
-    reasoning: str = Field(..., description="Reasoning for the recipe selection")
+    source: str = Field("", description="Source of the recipes")
+    reasoning: str = Field("", description="Reasoning for the recipe selection")

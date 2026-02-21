@@ -8,7 +8,7 @@ from fastapi import UploadFile
 from langchain_core.messages import HumanMessage
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agents.general_agent.agent import stream_general_agent
+from app.agents.general_agent.agent import stream_general_agent, stream_general_agent_resume
 from app.agents.general_agent.schemas import GeneralAgentContext
 from app.services.message_service import MessageService
 
@@ -67,30 +67,38 @@ class ChatService:
         return image_base64, image_type
 
     @staticmethod
-    def build_context(user_language: str = "English") -> GeneralAgentContext:
+    def build_context(
+        user_language: str = "English",
+        user_id: int | None = None,
+    ) -> GeneralAgentContext:
         """
         Build the agent context.
-        
+
         Args:
             user_language: User's preferred language
-            
+            user_id: Current user ID (for save_recipe tool)
+
         Returns:
             GeneralAgentContext instance
         """
-        return GeneralAgentContext(user_language=user_language)
+        return GeneralAgentContext(user_language=user_language, user_id=user_id)
 
     @staticmethod
-    def build_config(thread_id: str) -> dict:
+    def build_config(thread_id: str, user_id: int | None = None) -> dict:
         """
         Build the agent config.
-        
+
         Args:
             thread_id: Conversation thread identifier
-            
+            user_id: Current user ID (for save_recipe and resume)
+
         Returns:
             Config dictionary for the agent
         """
-        return {"configurable": {"thread_id": thread_id}}
+        config: dict = {"configurable": {"thread_id": thread_id}}
+        if user_id is not None:
+            config["configurable"]["user_id"] = user_id
+        return config
 
     def stream_response(
         self,
@@ -116,9 +124,7 @@ class ChatService:
         content = self.create_message_content(message, image_base64, image_type)
         config = self.build_config(thread_id)
         context = self.build_context(user_language)
-        
         langchain_messages = [HumanMessage(content=content)]
-        
         yield from stream_general_agent(langchain_messages, config, context)
 
     async def stream_with_persistence(
@@ -163,27 +169,43 @@ class ChatService:
         current_content = self.create_message_content(message, image_base64, image_type)
         current_message = HumanMessage(content=current_content)
         
-        # Build config and context
-        config = self.build_config(thread_id)
-        context = self.build_context(user_language)
-        
+        # Build config and context (user_id for save_recipe tool and resume)
+        config = self.build_config(thread_id, user_id=user_id)
+        context = self.build_context(user_language, user_id=user_id)
+
         # Stream and collect response
         full_response_parts: list[str] = []
-        
+        interrupted = False
+
         for chunk in stream_general_agent([current_message], config, context):
             yield chunk
-            
+
+            # Detect interrupt (HITL): stop streaming so client can show approve/reject
+            try:
+                line = chunk.strip()
+                if line.startswith("data: "):
+                    json_str = line[6:]
+                    parsed = json.loads(json_str)
+                    if parsed.get("type") == "interrupt":
+                        interrupted = True
+                        break
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
             # Extract text content from data events (SSE format: "data: {...}\n\n")
             try:
                 line = chunk.strip()
                 if line.startswith("data: "):
-                    json_str = line[6:]  # Remove "data: " prefix
+                    json_str = line[6:]
                     parsed = json.loads(json_str)
                     if parsed.get("type") == "data" and parsed.get("data"):
                         full_response_parts.append(parsed["data"])
             except (json.JSONDecodeError, AttributeError):
                 pass
-        
+
+        if interrupted:
+            return
+
         # Save assistant message after stream completes (for frontend display)
         if full_response_parts:
             full_response = "".join(full_response_parts)
@@ -194,6 +216,21 @@ class ChatService:
                 user_id=user_id
             )
             logger.debug(f"Saved assistant message: {len(full_response)} chars")
+
+    def stream_resume(
+        self,
+        thread_id: str,
+        user_id: int,
+        decisions: list[dict],
+        user_language: str = "English",
+    ) -> Generator[str, None, None]:
+        """
+        Stream the agent response after HITL resume (user approved/rejected save_recipe).
+        Uses same config and context as original stream so save_recipe has user_id.
+        """
+        config = self.build_config(thread_id, user_id=user_id)
+        context = self.build_context(user_language, user_id=user_id)
+        yield from stream_general_agent_resume(config, context, decisions)
 
 
 # Singleton instance

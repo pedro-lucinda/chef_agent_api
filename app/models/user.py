@@ -15,5 +15,6 @@ class User(Base):
     img = Column(String, nullable=True)
 
     threads = relationship("Thread", back_populates="user")
+    recipes = relationship("Recipe", back_populates="user")
 
 

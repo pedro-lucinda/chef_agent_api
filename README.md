@@ -59,17 +59,24 @@ A FastAPI-based service that generates recipes based on user input (text or imag
 
 The API will be available at `http://localhost:8000`
 
+### Alembic commands
+
+- **Apply all migrations:** `alembic upgrade head` (or `uv run alembic upgrade head` / `docker compose exec api uv run alembic upgrade head`)
+- **Reset database (drop all app tables):** `alembic downgrade base` then `alembic upgrade head` to recreate from scratch
+- **Current revision:** `alembic current`
+- **Migration history:** `alembic history`
+
 ## Environment Variables
 
 Create a `.env` file with the following variables:
 
 ```env
 # Database
-POSTGRES_SERVER=db
+POSTGRES_SERVER=chef_db
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
-POSTGRES_DB=db
-DATABASE_URL=postgresql+asyncpg://postgres:your_password@db:5432/db
+POSTGRES_DB=chef_db
+DATABASE_URL=postgresql+asyncpg://postgres:your_password@chef_db:5432/chef_db
 
 # Auth0
 AUTH0_DOMAIN=your-domain.auth0.com
