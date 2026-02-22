@@ -14,4 +14,9 @@ class Thread(Base):
     user = relationship("User", back_populates="threads")
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    messages = relationship("Message", back_populates="thread", cascade="all, delete-orphan")
+    messages = relationship(
+        "Message",
+        back_populates="thread",
+        cascade="all, delete-orphan",
+        order_by="Message.created_at",
+    )
