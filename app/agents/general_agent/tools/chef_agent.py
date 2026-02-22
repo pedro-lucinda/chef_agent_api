@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 
 @tool
 def call_chef_agent(message: str) -> str: 
-    """Call the chef agent subagent to generate a recipe based on the user's ingredients and instructions"""
+    """Call the chef agent to generate one recipe based on the user's ingredients and instructions."""
     response = chef_agent.invoke({"messages": [HumanMessage(content=message)]})
     
     # Return structured response if available, otherwise fall back to message content

@@ -1,7 +1,7 @@
 """create_threads_and_messages_tables
 
 Revision ID: 3d1a47267ba5
-Revises: a3c265ea8969
+Revises: 001
 Create Date: 2026-01-10 03:32:18.223041
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '3d1a47267ba5'
-down_revision: Union[str, None] = 'a3c265ea8969'
+down_revision: Union[str, None] = '001'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

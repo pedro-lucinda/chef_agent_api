@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.routers import (
-    user, chat, thread, message
+    user, chat, thread, message, recipe
 )
 from app.core.config import settings
 from app.core.openapi import custom_openapi
@@ -55,6 +55,11 @@ def create_app() -> FastAPI:
         message.router,
         prefix=f"{settings.api_v1_str}/message",
         tags=["message"],
+    )
+    app.include_router(
+        recipe.router,
+        prefix=f"{settings.api_v1_str}/recipes",
+        tags=["recipes"],
     )
 
     return app

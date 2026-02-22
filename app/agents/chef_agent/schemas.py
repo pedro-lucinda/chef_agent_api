@@ -14,7 +14,7 @@ class Recipe(BaseModel):
 
 
 class RecipeResponse(BaseModel):
-    """Structured response containing recipes."""
-    recipes: list[Recipe] = Field(..., description="List of recipes")
+    """Structured response containing exactly one recipe."""
+    recipes: list[Recipe] = Field(..., min_length=1, max_length=1, description="List with exactly one recipe")
     source: str = Field("", description="Source of the recipes")
     reasoning: str = Field("", description="Reasoning for the recipe selection")
