@@ -13,8 +13,3 @@ def web_search(text_query: str) -> Dict[str, Any]:
     """Search the web for recipes by text query"""
     return tavily_client.search(text_query)
 
-@tool
-def web_search_image(image: str) -> Dict[str, Any]:
-    """Search the web for recipes by image"""
-    return tavily_client.search_image(image)
-

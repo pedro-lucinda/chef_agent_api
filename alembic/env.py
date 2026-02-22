@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 import app.models.user
 import app.models.thread
 import app.models.message
+import app.models.recipe
 from alembic import context
 from app.core.config import settings
 

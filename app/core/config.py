@@ -21,13 +21,13 @@ class Settings(BaseSettings):
     api_v1_str: str = "/api/v1"
 
     # PostgreSQL
-    postgres_server: str = os.getenv("POSTGRES_SERVER", "db")
+    postgres_server: str = os.getenv("POSTGRES_SERVER", "chef_db")
     postgres_user: str = os.getenv("POSTGRES_USER", "postgres")
     postgres_password: str = os.getenv("POSTGRES_PASSWORD", "example")
-    postgres_db: str = os.getenv("POSTGRES_DB", "db")
+    postgres_db: str = os.getenv("POSTGRES_DB", "chef_db")
     sqlalchemy_database_uri: str = ""  # built in __init__
     database_url: str = os.getenv(
-        "DATABASE_URL", "postgresql+asyncpg://postgres:example@db:5432/db"
+        "DATABASE_URL", "postgresql+asyncpg://postgres:example@chef_db:5432/chef_db"
     )
     db_eco: str = False
     # Redis

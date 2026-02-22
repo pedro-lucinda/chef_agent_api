@@ -13,12 +13,12 @@ services:
     volumes:
       - .:/app:cached
     depends_on:
-      - db
+      - chef_db
     restart: unless-stopped
 
-  db:
+  chef_db:
     image: postgres:15
-    container_name: db
+    container_name: chef_db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

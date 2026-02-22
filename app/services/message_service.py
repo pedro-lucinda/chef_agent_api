@@ -13,21 +13,23 @@ class MessageService:
         self.db = db
 
     async def create_message(
-        self, 
-        thread_id: UUID, 
-        content: str, 
+        self,
+        thread_id: UUID,
+        content: str,
         role: str,
-        user_id: int
+        user_id: int,
+        recipe_data: list | None = None,
     ) -> Optional[Message]:
         """
         Create a new message in a thread.
-        
+
         Args:
             thread_id: Thread ID
             content: Message content
             role: Message role ("user" or "assistant")
             user_id: User ID to verify thread ownership
-            
+            recipe_data: Optional list of recipe dicts for assistant messages (UI can render cards on refresh)
+
         Returns:
             Created message if thread exists and belongs to user, None otherwise
         """
@@ -35,11 +37,12 @@ class MessageService:
         thread = await self._verify_thread_ownership(thread_id, user_id)
         if not thread:
             return None
-        
+
         message = Message(
             thread_id=thread_id,
             content=content,
-            role=role
+            role=role,
+            recipe_data=recipe_data,
         )
         self.db.add(message)
         await self.db.commit()

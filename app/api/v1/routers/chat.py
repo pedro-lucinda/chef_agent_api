@@ -3,7 +3,11 @@ Chat router - handles streaming chat endpoints.
 
 This router is kept thin, delegating business logic to ChatService.
 """
+import logging
+
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+
+logger = logging.getLogger(__name__)
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,7 +41,7 @@ async def stream_chat(
     # Process image if provided
     image_base64, image_type = await chat_service.process_image(image)
 
-    # Stream with message persistence
+    # Stream with message persistence (headers avoid buffering so client gets token-by-token)
     return StreamingResponse(
         chat_service.stream_with_persistence(
             message=message,
@@ -48,5 +52,10 @@ async def stream_chat(
             image_type=image_type,
             user_language=user_language
         ),
-        media_type="application/x-ndjson"
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
     )

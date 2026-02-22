@@ -1,8 +1,9 @@
 import json
 from dotenv import load_dotenv
 from langchain.agents import create_agent
-from app.agents.chef_agent.tools.web_search_tool import web_search, web_search_image
+from app.agents.chef_agent.tools.web_search_tool import web_search
 from app.agents.chef_agent.prompt import CHEF_AGENT_PROMPT
+from app.agents.chef_agent.schemas import RecipeResponse
 from langchain_core.messages import AnyMessage, AIMessage, ToolMessage
 from typing import List, Generator
 
@@ -10,9 +11,10 @@ load_dotenv()
 
 
 chef_agent = create_agent(
-    tools=[web_search, web_search_image],
+    tools=[web_search],
     model="gpt-5-nano",
     system_prompt=CHEF_AGENT_PROMPT,
+    response_format=RecipeResponse,
 )
 
   
