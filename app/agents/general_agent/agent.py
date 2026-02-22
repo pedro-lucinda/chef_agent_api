@@ -19,7 +19,11 @@ from typing import List, Generator
 load_dotenv()
 
 
-model = ChatOpenAI(model="gpt-5-nano", temperature=0.3)
+model = ChatOpenAI(
+    model="gpt-5-nano",
+    temperature=0.3,
+    request_timeout=60
+)
 
 general_agent = create_agent(
     tools=[call_chef_agent, save_recipe],

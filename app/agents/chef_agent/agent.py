@@ -1,6 +1,7 @@
 import json
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain_openai import ChatOpenAI
 from app.agents.chef_agent.tools.web_search_tool import web_search
 from app.agents.chef_agent.prompt import CHEF_AGENT_PROMPT
 from app.agents.chef_agent.schemas import RecipeResponse
@@ -9,10 +10,14 @@ from typing import List, Generator
 
 load_dotenv()
 
+chef_model = ChatOpenAI(
+    model="gpt-5-nano",
+    request_timeout=60,
+)
 
 chef_agent = create_agent(
     tools=[web_search],
-    model="gpt-5-nano",
+    model=chef_model,
     system_prompt=CHEF_AGENT_PROMPT,
     response_format=RecipeResponse,
 )

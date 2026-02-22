@@ -88,16 +88,16 @@ def _user_language_prompt(request: ModelRequest) -> str:
     return base_prompt
 
 
+TRIM_MESSAGES_KEEP = 6
+
+
 @before_agent
 def _trim_messages(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
-    """Trim old messages, keeping only the last 10."""
+    """Trim old messages, keeping only the last N (fewer tokens = faster LLM calls)."""
     messages = state["messages"]
-    
-    # If 10 or fewer messages, no trimming needed
-    if len(messages) <= 10:
+
+    if len(messages) <= TRIM_MESSAGES_KEEP:
         return None
-    
-    # Remove messages BEFORE the last 10 (keep the recent ones)
-    messages_to_remove = messages[:-10]
-    
+
+    messages_to_remove = messages[:-TRIM_MESSAGES_KEEP]
     return {"messages": [RemoveMessage(id=m.id) for m in messages_to_remove]}
